@@ -2,15 +2,18 @@ ARG BASE_IMAGE=nvidia/opengl:1.2-glvnd-runtime-ubuntu20.04
 FROM ${BASE_IMAGE} AS downloader
 
 # Determine Webots version to be used and set default argument
-ARG WEBOTS_VERSION=R2022b
+ARG WEBOTS_VERSION=R2023a
 ARG WEBOTS_PACKAGE_PREFIX=
+ARG WEBOTS_NIGHTLY_DATE=
 
 # Disable dpkg/gdebi interactive dialogs
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install --yes wget && rm -rf /var/lib/apt/lists/ && \
- wget https://github.com/cyberbotics/webots/releases/download/$WEBOTS_VERSION/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 && \
- tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
+RUN apt-get update && apt-get install --yes wget && rm -rf /var/lib/apt/lists/ && \
+    wget $(if [[ -z "$WEBOTS_NIGHTLY_DATE" ]] ; then echo \
+    https://github.com/cyberbotics/webots/releases/download/$WEBOTS_VERSION/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 ; \
+    else echo https://github.com/cyberbotics/webots/releases/download/nightly_$WEBOTS_NIGHTLY_DATE/webots-$WEBOTS_VERSION-x86-64$WEBOTS_PACKAGE_PREFIX.tar.bz2 ; fi) && \
+    tar xjf webots-*.tar.bz2 && rm webots-*.tar.bz2
 
 FROM ${BASE_IMAGE}
 
@@ -18,12 +21,12 @@ FROM ${BASE_IMAGE}
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Webots runtime dependencies
-RUN apt update && apt install --yes wget && rm -rf /var/lib/apt/lists/ && \
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/ && \
   wget https://raw.githubusercontent.com/cyberbotics/webots/master/scripts/install/linux_runtime_dependencies.sh && \
   chmod +x linux_runtime_dependencies.sh && ./linux_runtime_dependencies.sh && rm ./linux_runtime_dependencies.sh && rm -rf /var/lib/apt/lists/
 
 # Install X virtual framebuffer to be able to use Webots without GPU and GUI (e.g. CI)
-RUN apt update && apt install --yes xvfb && rm -rf /var/lib/apt/lists/
+RUN apt-get update && apt-get install --yes xvfb && rm -rf /var/lib/apt/lists/
 
 # Install Webots
 WORKDIR /usr/local
