@@ -2,7 +2,7 @@ ARG BASE_IMAGE=nvidia/opengl:1.2-glvnd-runtime-ubuntu20.04
 FROM ${BASE_IMAGE} AS downloader
 
 # Determine Webots version to be used and set default argument
-ARG WEBOTS_VERSION=R2022a
+ARG WEBOTS_VERSION=R2022b
 ARG WEBOTS_PACKAGE_PREFIX=
 ARG WEBOTS_NIGHTLY_DATE=
 
